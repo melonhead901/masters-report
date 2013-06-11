@@ -19,8 +19,8 @@ Actual Completion Date: & #3 & Actual Completion Time: & #4 \\
 \end{tabular}}
 
 \title{Celeriac: A Daikon .NET Front End}
-\author{Kellen Donohue}
-
+\author{Kellen Donohue\\ \\
+University of Washington, Computer Science \& Engineering\\ \\}
 \begin{document}
 \maketitle
 
@@ -32,21 +32,53 @@ Contracts provide an agreement between a method implementer and caller, and also
 
 \ch{class} BankAccount \{
   \ch{bool} Withdraw(\clh{Account} acct, \ch{decimal} amt) \{
-      \coh{// Don't withdraw a negative amount}
+      \coh{// Don't withdraw a negative amount.}
       \clh{Contract}.Requires(amt >= 0);
-      \coh{// Return whether withdraw succeeded}
+      \coh{// Return whether withdraw succeeded.}
       \clh{Contract}.Ensures(
         \clh{Contract}.Result<\ch{bool}>() == acct.bal >= amt);
-      \coh{// Update the account properly}
+      \coh{// Update the account properly.}
       \clh{Contract}.Ensures(acct.bal == \clh{Contract}.OldValue(acct.bal) - \clh{Contract}.Result<\ch{bool}>() ? amt : 0);
       ...
   \}
 \}
 \end{Verbatim}
-\end{center} \captionof{figure}{Bank Account}
-\~ \\
-Contracts are useful for ensuring the correct behavior of program.
+\end{center} \captionof{figure}{Bank Account With Contracts}
+\  \\
+Contracts are useful for ensuring the correct behavior of programs. Additionally, the .NET framework has many tools that are enhanced by the use of contracts, in a framework called CodeContracts. The Pex white-box test generation tool \cite{pex} won't generate tests that violate specified contracts, which is important for ensuring that generated tests satisfy a specification. Developers can use contracts to statically verify program properties \cite{static} and automatically generate API documentation \cite{contracts}.
+
+\subsection{Daikon}
+To help developers insert appropriate contracts the Daikon tool \cite{daikon} dynamically detects likely program invariants. It takes as input a program trace, and outputs a list of possible invariants based on that trace.  The following figure demonstrates a code snippet and the possible invariants that Daikon may infer on the snippet.
+
+\begin{center}
+\begin{Verbatim}[commandchars=\\\{\}]
+\ch{public void} makeEmpty() \{
+    \clh{Arrays}.fill(theArray, 0, topOfStack + 1, \ch{null});
+    topOfStack = -1;
+\}
+
+-----------------------------------------------------
+
+Daikon Invariants:
+DataStructures.StackAr.makeEmpty():::EXIT
+size(this.theArray[]) == orig(size(this.theArray[]))
+this.theArray[] elements == null
+this.topOfStack == -1
+this.theArray[0..this.topOfStack] == []
+this.topOfStack <= orig(this.topOfStack)
+
+\end{Verbatim}
+\end{center} \captionof{figure}{Daikon Example}
+\  \\
+In this example all the Daikon inferred invariants are true of the source code, however that is not always the case. Since Daikon can only output invariants based on input traces it may output invariants that are too weak (since it is limited by the type of invariants that may occur) or too strong (since it may over-generalize if given a trace that doesn't well demonstrate the program).
+\\ \\
+However, for Daikon to be useful a trace must first be generated. This is done through a Daikon front end, which is a tool that modifies a program so that it output a trace during execution. Prior to this work there is no .NET Daikon Front End.
+\\ \\
+The contribution of this work is as follows. The technical contribution is Celeriac, a Daikon front end for the .NET programming languages C\#, F\#, and VB.NET. The research contribution is an investigation of which types of contracts developers choose to include in their programs, and why.
+
 \section{Related Work}
+Daikon .NET front ends exist for some other languages. The Chicory front end, for Java, is very popular, and Celeriac was modeled after the external behavior or Chicory in many cases. The Kvasir front end, for C++, was a model for the testing suite as well.
+
 \section{User Documentation}
 \section{Developer Documentation}
 \section{Research Experiments}
