@@ -1,10 +1,17 @@
 \documentclass{article}
 
+\usepackage{code}
 \usepackage{url}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+\newcommand\ch[1]{\textcolor[rgb]{0,0,1}{\textbf{#1}}}
+\newcommand\clh[1]{\textcolor[rgb]{0,.5,1}{\textbf{#1}}}
+\newcommand\coh[1]{\textcolor[rgb]{0,.6,0}{\textbf{#1}}}
 
 \newcommand{\timetbl}[4]{\par\vspace{5mm}\begin{tabular}{ l l l l }
 Estimated Completion Date: & #1 & Estimated Completion Time: & #2 \\
@@ -16,6 +23,34 @@ Actual Completion Date: & #3 & Actual Completion Time: & #4 \\
 
 \begin{document}
 \maketitle
+
+\section{Overview}
+\subsection{Contracts}
+Contracts provide an agreement between a method implementer and caller, and also describe well-formed object. The following code snippet shows how a typical bank account withdraw method may be annotated with contracts.
+\begin{center}
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\ch{class} BankAccount \{
+  \ch{bool} Withdraw(\clh{Account} acct, \ch{decimal} amt) \{
+      \coh{// Don't withdraw a negative amount}
+      \clh{Contract}.Requires(amt >= 0);
+      \coh{// Return whether withdraw succeeded}
+      \clh{Contract}.Ensures(
+        \clh{Contract}.Result<\ch{bool}>() == acct.bal >= amt);
+      \coh{// Update the account properly}
+      \clh{Contract}.Ensures(acct.bal == \clh{Contract}.OldValue(acct.bal) - \clh{Contract}.Result<\ch{bool}>() ? amt : 0);
+      ...
+  \}
+\}
+\end{Verbatim}
+\end{center} \captionof{figure}{Bank Account}
+\~ \\
+Contracts are useful for ensuring the correct behavior of program.
+\section{Related Work}
+\section{User Documentation}
+\section{Developer Documentation}
+\section{Research Experiments}
+\section{Conclusion}
 
 \newpage
 \bibliographystyle{plain}
