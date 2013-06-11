@@ -24,7 +24,7 @@ University of Washington, Computer Science \& Engineering\\ \\}
 \begin{document}
 \maketitle
 
-\section{Overview}
+\section{Introduction}
 \subsection{Contracts}
 Contracts provide an agreement between a method implementer and caller, and also describe well-formed object. The following code snippet shows how a typical bank account withdraw method may be annotated with contracts.
 \begin{center}
@@ -38,7 +38,9 @@ Contracts provide an agreement between a method implementer and caller, and also
       \clh{Contract}.Ensures(
         \clh{Contract}.Result<\ch{bool}>() == acct.bal >= amt);
       \coh{// Update the account properly.}
-      \clh{Contract}.Ensures(acct.bal == \clh{Contract}.OldValue(acct.bal) - \clh{Contract}.Result<\ch{bool}>() ? amt : 0);
+      \clh{Contract}.Ensures(acct.bal == 
+        \clh{Contract}.OldValue(acct.bal) - \clh{Contract}.Result<\ch{bool}>() 
+        ? amt : 0);
       ...
   \}
 \}
@@ -73,15 +75,19 @@ this.topOfStack <= orig(this.topOfStack)
 In this example all the Daikon inferred invariants are true of the source code, however that is not always the case. Since Daikon can only output invariants based on input traces it may output invariants that are too weak (since it is limited by the type of invariants that may occur) or too strong (since it may over-generalize if given a trace that doesn't well demonstrate the program).
 \\ \\
 However, for Daikon to be useful a trace must first be generated. This is done through a Daikon front end, which is a tool that modifies a program so that it output a trace during execution. Prior to this work there is no .NET Daikon Front End.
-\\ \\
-The contribution of this work is as follows. The technical contribution is Celeriac, a Daikon front end for the .NET programming languages C\#, F\#, and VB.NET. The research contribution is an investigation of which types of contracts developers choose to include in their programs, and why.
+
+\subsection{Contributions}
+The contribution of this work is as follows. The technical contribution is Celeriac, a Daikon front end for the .NET programming languages C\#, F\#, and VB.NET. The research contribution is an investigation of which types of contracts developers choose to include in their programs, and why. Section 2 described how Celeriac relates to other Daikon front ends, and other .NET profiler tools. Section 3 describes the use of Celeriac. Section 4 describes the implementation of Celeriac, including important design contributions. Section 5 describes the application of Celeriac to answer software engineering questions. Finally, Section 6 concludes with a summary of the contributions and future work.
 
 \section{Related Work}
 Daikon .NET front ends exist for some other languages. The Chicory front end, for Java, is very popular, and Celeriac was modeled after the external behavior or Chicory in many cases. The Kvasir front end, for C++, was a model for the testing suite as well.
+\\ \\
+Celeriac is unique among Daikon front ends in that no other front end has been written for a functional language, such as F\#. Also, no other front ends have explicitly targeted a multi-language platform, such as .NET.
 
 \section{User Documentation}
 \section{Developer Documentation}
 \section{Research Experiments}
+The primary research question Celeriac answers is what kinds of contracts can be inferred from programs. Important related research questions are, which of these inferred contracts do developers choose to include in their subject. 
 \section{Conclusion}
 
 \newpage
