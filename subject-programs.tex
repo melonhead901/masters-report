@@ -1,0 +1,105 @@
+\subsection{Subject Programs}
+\label{sec:subject-programs}
+
+In this section, we describe the four subject programs and their
+current use of the Code Contract tool as described by a developer
+questionnaire. We selected these subject projects from the ``Projects
+Using Code Contracts'' listing on the Microsoft Code Contracts
+project
+website\footnote{https://research.microsoft.com/en-us/projects/contracts/}.
+%
+The projects were chosen because they are open-source, actively
+developed, have users (i.e., are not toy programs), and use contracts
+in a meaningful way.
+
+\subsubsection{Labs Framework}
+
+The Labs Framework\footnote{https://labs.codeplex.com/} (11K SLOC) is
+a framework for managing ``experiments'' exploring the behavior of an
+API are library. Labs provide a means for demonstrating features to a
+library's users, or for a user to perform reproducible
+experimentation.
+\\ \\
+The project uses \verb|ccheck|, the static Code Contract checker,
+which is enabled by default for both the Debug and Release
+configurations (but not the Profiling configuration).
+
+\subsubsection{Mishra Reader}
+
+Mishra Reader\footnote{\url{http://mishrareader.codeplex.com/}}
+(19K SLOC) is an open-source Google Reader client with over 27,500
+downloads.
+%
+The developer we interviewed introduced Code Contracts to the core
+library 2 1/2 years ago (Fall 2011) to help reduce bugs in
+multi-threaded code.
+% Before this study, the codebase included 59 preconditions, 14 postconditions, and 4
+% object invariants. 69 of these contracts were nullness checks on
+% either an argument or method return value; the project did not include quantification
+% (\verb|ForAll| or \verb|Exists|) contracts.
+%
+Code Contracts were written after the methods were written to aide in
+debugging (i.e., as opposed to design by contract).
+%
+Initially satisfied with Code Contracts, the developer became
+dissatisfied due to a lack of support for debugging with contract in
+\verb|async| and \verb|await| constructs (the IL rewriter did not
+properly modify the debugging information); debugging support for
+these constructs has since been added.
+
+The development team does not use the static Code Contract checker,
+citing that it is slow and noisy. Runtime checks are configured to
+throw an exception and terminate the program; the project's test suite
+is also set up to fail a test given a contract violation.
+
+\begin{table}[t]
+\begin{center}{
+\begin{tabular}{ ll }
+  Project & Code Contract Use \\ \hline
+  Labs Framework & Static checking \\
+  Mishra Reader & Debugging concurrent code \\
+  Sando & Early runtime error detection \\
+  QuickGraph & Static checking and Pex
+\end{tabular} }
+\end{center}
+\caption{The subject programs and their primary use of Code Contracts}
+\end{table}
+
+\subsubsection{Sando}
+
+Sando\footnote{https://sando.codeplex.com/} is a Lucene-based code
+search engine that includes a Visual Studio interface; the software is
+Beta with over 500 downloads.
+%
+The Sando project has used Code Contracts for 1 1/2 years (since
+Winter 2012). Code Contracts were introduced to the project since one
+of main contributors had seen a webinar on Code Contracts and wanted
+to try them out. The team found the initial project setup more
+difficult than expected, especially due to issue integrating Code
+Contracts into the automated TeamCity build. Despite these initial
+challenges, the developer we interviewed feels that Code Contracts has
+sped the discovery of bugs or regressions, as well as increasing
+confidence in the quality of code containing contracts. Code Contracts
+are enabled only for debug builds.
+% The Sando project does not include any XML documentation, instead
+% using method and parameter naming as the primary documentation (along
+% with some comments within methods).
+
+The team primarily uses Code Contracts in core functionality,
+primarily in the Index component, as placing bad data into the index
+can result in later errors. The interview developer typically writes
+contracts after making a change, but before running the unit test
+suite before check-in.
+
+The interviewed developer was not aware of the static analyis tools
+Code Contracts. The project does not use any static analysis tools, in
+part because the team has limited build engineering resources. Code
+Contracts is seen as offering additional quality assurance without
+requiring additional build engineering, and likely makes the team less
+likely to try other quality assurance tools.
+
+\subsubsection{Quick Graph}
+
+Quick Graph\footnote{https://quickgraph.codeplex.com/} (32K SLOC) is
+a data structure and algorithm library. The project uses both the Code
+Contract checker, and PEX.
