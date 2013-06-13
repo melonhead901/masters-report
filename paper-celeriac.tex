@@ -71,8 +71,8 @@ The contracts that Daikon infers are sound with respect to the
 observed executions --- i.e., it does not infer any properties that
 are falsified by one of the observed traces.
 %
-We address the shortcomings of Daikon as they relate to this study in
-Section~\ref{sec:celeriac-threats}.
+%We address the shortcomings of Daikon as they relate to this study in
+%Section~\ref{sec:celeriac-threats}.
 
 \subsubsection{Abstract Type Inference}
 \label{sec:comparability}
@@ -121,74 +121,74 @@ assignable to the other.
 
 \subsubsection{Language-Specific Features and Daikon Enhancements}
 
-To support the .NET languages, we included features in Celeriac that
-aren't present in the other Daikon front-ends. Additionally, we
+To support the .NET languages, I included features in Celeriac that
+aren't present in the other Daikon front-ends. Additionally, I
 introduced new metadata to Daikon to support the features.
 
-% \paragraph{Properties}
+ \paragraph{Properties}
 
-% A .NET property is a hybrid of a field and method. Each property has an
-% associated \verb|get| and \verb|set| method. These methods are
-% accessed without parenthesis, as if they were a field:
+ A .NET property is a hybrid of a field and method. Each property has an
+ associated \verb|get| and \verb|set| method. These methods are
+ accessed without parenthesis, as if they were a field:
 
-% \begin{verbatim}
-%     myObject.Property = ...
-%     var x = myObject.Property
-% \end{verbatim}
+ \begin{verbatim}
+     myObject.Property = ...
+     var x = myObject.Property
+ \end{verbatim}
 
-% In many cases, the property is backed by a private field. Since this
-% is a common case, the .NET languages provide auto-properties, which
-% automatically generate the backing field. Unlike fields however,
-% properties may throw exceptions, produce different values each time
-% they are called (e.g., \verb|Date.Now|), or even perform
-% side-effects.
-% %
-% To enable pretty printing and filtering of properties in Daikon, we
-% introduced a \verb|is_property| variable flag.
+ In many cases, the property is backed by a private field. Since this
+ is a common case, the .NET languages provide auto-properties, which
+ automatically generate the backing field. Unlike fields however,
+ properties may throw exceptions, produce different values each time
+ they are called (e.g., \verb|Date.Now|), or even perform
+ side-effects.
+ %
+ To enable pretty printing and filtering of properties in Daikon, I
+ introduced a \verb|is_property| variable flag.
 
-%\paragraph{Readonly Variables}
+\paragraph{Readonly Variables}
 
-%The .NET languages include a \verb|readonly| keyword that specifies
-%that a variable must be assigned in the constructor, or given a
-%constant value; the equivalent in Java is the \verb|final|
-%keyword.
+The .NET languages include a \verb|readonly| keyword that specifies
+that a variable must be assigned in the constructor, or given a
+constant value; the equivalent in Java is the \verb|final|
+keyword.
 %
-%For readonly variables, Daikon produces redundant information for
-%method exit points stating that the variable has not been modified
-%(e.g., for a variable \verb|x|, \verb|x == orig(x)|).
+For readonly variables, Daikon produces redundant information for
+method exit points stating that the variable has not been modified
+(e.g., for a variable \verb|x|, \verb|x == orig(x)|).
 %
-%We introduced an \verb|is_readonly| variable flag to Daikon to filter
-%out these cases from the Daikon output.
+We introduced an \verb|is_readonly| variable flag to Daikon to filter
+out these cases from the Daikon output.
 %
-%In .NET, the \verb|==| operator performs a reference-equality
-%comparison for expressions with reference-type, and a value-based
-%comparison for expressions with value-types
+In .NET, the \verb|==| operator performs a reference-equality
+comparison for expressions with reference-type, and a value-based
+comparison for expressions with value-types
 %
-%\footnote{In C\#, the == and != operators can be
-%  overloaded to perform a value equality check for a reference-type;
-%  we do not consider this case.}.
+\footnote{In C\#, the == and != operators can be
+  overloaded to perform a value equality check for a reference-type;
+  we do not consider this case.}.
 %
-%Therefore, the semantics of the \verb|is_readonly| flag depends on the
-%type of the expression.
-
-%The \verb|readonly| keyword is shallow. For reference types, the
-%keyword prevents the reference from being reassigned, but does not
-%prevent the object from being modified through the reference.
+Therefore, the semantics of the \verb|is_readonly| flag depends on the
+type of the expression.
 %
-%Therefore, when considering a composite expression (e.g.,
-%\verb|this.foo.bar|), Celeriac cannot naively use the \verb|readonly|
-%attribute of the last field.
-%%
-%To compute whether an expression should be flagged as
-%\verb|is_readonly|, Celeriac starts at the root (e.g., \verb|this|in
-%the the case of \verb|this.foo.bar|) of the composite expression and
-%propagates reference immutability and value immutability
-%information. Reference immutability is propogated via the
-%\verb|readonly| fields (\verb|this| is reference-immutable). Value
-%immutability is propogated / introduced for \verb|readonly| fields
-%that have an immutable type. We define immutability conservatively ---
-%an immutable type is one that is composed of \verb|readonly| fields
-%with immutable types.
+The \verb|readonly| keyword is shallow. For reference types, the
+keyword prevents the reference from being reassigned, but does not
+prevent the object from being modified through the reference.
+%
+Therefore, when considering a composite expression (e.g.,
+\verb|this.foo.bar|), Celeriac cannot naively use the \verb|readonly|
+attribute of the last field.
+%
+To compute whether an expression should be flagged as
+\verb|is_readonly|, Celeriac starts at the root (e.g., \verb|this|in
+the the case of \verb|this.foo.bar|) of the composite expression and
+propagates reference immutability and value immutability
+information. Reference immutability is propagated via the
+\verb|readonly| fields (\verb|this| is reference-immutable). Value
+immutability is propagated / introduced for \verb|readonly| fields
+that have an immutable type. We define immutability conservatively ---
+an immutable type is one that is composed of \verb|readonly| fields
+with immutable types.
 
 % Celeriac uses a conservative immutability heuristic: reference types
 % that only consist of other immutable reference types or value types
@@ -204,7 +204,7 @@ introduced new metadata to Daikon to support the features.
 % %
 % Enumerations in .NET are backed by integers. In fact, uses of the
 % enumeration constants are replaced by integer constants in the IL (the
-% comparability analysis infers which integers are enumeration contants
+% comparability analysis infers which integers are enumeration constants
 % based on co-occurence with a variable with an enumeration type).
 % %
 % To aid pretty-printing of contracts involving enumerations, we
@@ -243,33 +243,33 @@ introduced new metadata to Daikon to support the features.
 
 \subsection{Results}
 
-\subsubsection{Domain-Independence}
-
-Table~\ref{table:celeriac} shows the inferred behavioral properties
-across three projects using scheme similar to that used for
-Table~\ref{table:cc-usage-table}.
+%\subsubsection{Domain-Independence}
 %
-The results indicate a higher ratio of application-specific behaviors
-(e.g., expression comparison, membership, universal quantification,
-and implication) than as recorded by developers.
+%Table~\ref{table:celeriac} shows the inferred behavioral properties
+%across three projects using scheme similar to that used for
+%Table~\ref{table:cc-usage-table}.
 %
-However, the absolute number of general behavioral properties still
-represents a sizeable amount of annotation effort. For example, there
-are a large number of equalities that a develop could potentially
-specify as a postcondition for a method.
+%The results indicate a higher ratio of application-specific behaviors
+%(e.g., expression comparison, membership, universal quantification,
+%and implication) than as recorded by developers.
+%
+%However, the absolute number of general behavioral properties still
+%represents a sizeable amount of annotation effort. For example, there
+%are a large number of equalities that a develop could potentially
+%specify as a postcondition for a method.
 
-\begin{table*}
-\begin{center}{\small \input{celeriac-table}}
-  \caption{Behavioral properties dynamically inferred by Daikon; the
-    contents of each category are mutually exclusive.  The Mishra
-    Reader View Models component and Sando Indexer component are the subjects of the developer case study in
-    Section~\ref{sec:observe}.
-    %
-    \todo{The NullOrBlank, Non-Empty, Bounds Check, and Indicator
-      categories need to be fixed.}}
-\end{center}
-\label{table:celeriac}
-\end{table*}
+%\begin{table*}
+%\begin{center}{\small \input{celeriac-table}}
+%  \caption{Behavioral properties dynamically inferred by Daikon; the
+%    contents of each category are mutually exclusive.  The Mishra
+%    Reader View Models component and Sando Indexer component are the subjects of the %developer case study in
+ %   Section~\ref{sec:observe}.
+%    %
+%    \todo{The NullOrBlank, Non-Empty, Bounds Check, and Indicator
+%      categories need to be fixed.}}
+%\end{center}
+%\label{table:celeriac}
+%\end{table*}
 
 \subsubsection{Expressivity}
 To get an intuition for how often different methods exhibit the same
