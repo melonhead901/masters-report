@@ -49,7 +49,7 @@ Contracts provide an agreement between a method implementer and caller, and also
   \}
 \}
 \end{Verbatim}
-\end{center} \captionof{figure}{Bank Account With Contracts}
+\end{center} \captionof{figure}{Classic Bank Account method annotated with CodeContracts}
 \  \\
 Contracts are useful for ensuring the correct behavior of programs. Additionally, the .NET framework has many tools that are enhanced by the use of contracts, in a framework called CodeContracts. The Pex white-box test generation tool \cite{pex} won't generate tests that violate specified contracts, which is important for ensuring that generated tests satisfy a specification. Developers can use contracts to statically verify program properties \cite{static} and automatically generate API documentation \cite{contracts}.
 
@@ -74,7 +74,7 @@ this.theArray[0..this.topOfStack] == []
 this.topOfStack <= orig(this.topOfStack)
 
 \end{Verbatim}
-\end{center} \captionof{figure}{Daikon Example}
+\end{center} \captionof{figure}{Example of Java code and Daikon invariants that could be generated for it}
 \  \\
 In this example all the Daikon inferred invariants are true of the source code, however that is not always the case. Since Daikon can only output invariants based on input traces it may output invariants that are too weak (since it is limited by the type of invariants that may occur) or too strong (since it may over-generalize if given a trace that doesn't well demonstrate the program).
 \\ \\
@@ -92,12 +92,29 @@ Daikon .NET front ends exist for some other languages. The Chicory front end, fo
 \\ \\
 Celeriac is unique among Daikon front ends in that no other front end has been written for a functional language, such as F\#. Also, no other front ends have explicitly targeted a multi-language platform, such as .NET.
 
+\newpage
 \section{User Documentation}
+Daikon trace files may be very large (on the order of gigabytes), even for reasonable programs. A challenge for users of Daikon on programs such as these is to limit the trace to areas of particular interest, for example by looking only at certain classes. To support this Celeriac supports a wide variety of options for filtering which variables or program points are output. Celeriac also supports options to produce additional output, such as the values of pure methods, or the ability to synthesize linked lists.
+\\ \\
+Included here is the Celeriac user documentation, as available to users on the Celeriac project homepage \footnote{\url{https://code.google.com/p/daikon-dot-net-front-end/w/list}}. The documentation describes all the optional features of Celeriac.
 
+\newpage
 \section{Developer Documentation}
+Included here is the Celeriac developer documentation. 
 
-\section{Research Experiments}
-The primary research question Celeriac answers is what kinds of contracts are inferred from real programs and libraries. Important related research questions are, which of these inferred contracts do developers choose to include in their subject. To answer these questions a study was done on programs C\# open source programs that contained Code Contracts.
+\newpage
+\section{Research Contributions}
+Our research team used Celeriac in an investigation of the following research questions:
+This requires answering two other questions.
+\begin{research-question}
+  How do developers annotate programs with Code Contracts manually (without the aid of tools such as Daikon that infer invariants)?
+\end{research-question}
+\begin{research-question}
+  What are the observable behaviors of .NET programs as inferred by Daikon?
+\end{research-question}
+\begin{research-question}
+  Given a list of suggested invariants, how do developers choose which contracts to include?
+\end{research-question}
 
 \input{subject-programs}
 \input{paper-celeriac}
