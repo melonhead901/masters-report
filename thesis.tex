@@ -20,13 +20,15 @@
 
 \newtheorem{research-question}{Research Question}[section]
 
-\newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
-
 \title{Celeriac: A Daikon .NET Front End}
-\author{Kellen Donohue\\ \\
-University of Washington, Computer Science \& Engineering\\ \\}
+\author{Kellen Donohue}
+\newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
 \begin{document}
 \maketitle
+
+\abstract{
+Celeriac is a .NET Front End for Daikon, it allows invariant detection in C\#, F\#, and other .NET programs. This paper discusses the features, design, and a research use of the tool. Daikon is a tool which takes a program trace and infers likely program invariants. However, it needs a front-end, such as Celeriac to modify a program to produce this trace. This paper describes many ways users can interface with Celeriac. It explains the architecture of Celeriac, with explanations of design decisions relevant to other profiler tools. It discusses the results of a preliminary research study examining how .NET developers uses code contracts today, what the behavior of .NET programs is as observed by Daikon, and these two differ.
+}
 
 \section{Introduction}
 \subsection{Contracts}
@@ -85,7 +87,7 @@ Daikon works as follows, and as described in the figure below. First, front-end 
 \end{center} \captionof{figure}{Operation of Daikon}
 
 \subsection{Contributions}
-The contribution of this work is as follows. The technical contribution is Celeriac, a Daikon front end for the .NET programming languages C\#, F\#, and VB.NET. The research contribution is an investigation of which types of contracts developers choose to include in their programs, and why. Section 2 described how Celeriac relates to other Daikon front ends, and other .NET profiler tools. Section 3 describes the use of Celeriac. Section 4 describes the implementation of Celeriac, including important design contributions. Section 5 describes the application of Celeriac to answer software engineering questions. Finally, Section 6 concludes with a summary of the contributions and future work.
+The contribution of this work is as follows. The technical contribution is Celeriac, a Daikon front end for the .NET programming languages C\#, F\#, and VB.NET. The research contribution is an investigation of which types of contracts developers choose to include in their programs, and why. Section 2 described how Celeriac relates to other Daikon front ends, and other .NET profiler tools. Section 3 describes the use of Celeriac. Section 4 describes the implementation of Celeriac, including important design contributions. Section 5 describes the application of Celeriac to answer software engineering questions. Finally, Section 6 concludes.
 
 \section{Related Work}
 Daikon .NET front ends exist for some other languages. The Chicory front end, for Java, is very popular, and Celeriac was modeled after the external behavior or Chicory in many cases. The Kvasir front end, for C++, was a model for the testing suite as well.
@@ -100,27 +102,185 @@ Included here is the Celeriac user documentation, as available to users on the C
 
 \newpage
 \section{Developer Documentation}
-Included here is the Celeriac developer documentation. 
+Included here is the Celeriac developer documentation. It describes the architecture of Celeriac, along with design decisions made for Celeriac that are useful insights for building other profiler tools.
 
 \newpage
 \section{Research Contributions}
 Our research team used Celeriac in an investigation of the following research questions:
-This requires answering two other questions.
+
 \begin{research-question}
-  How do developers annotate programs with Code Contracts manually (without the aid of tools such as Daikon that infer invariants)?
+  What kinds of Code Contracts do developers manually (without the aid of tools such as Daikon that infer invariants) include in their programs?
 \end{research-question}
 \begin{research-question}
-  What are the observable behaviors of .NET programs as inferred by Daikon?
+  What are the observable behaviors of .NET programs as inferred by Daikon? How do these differ (quantitatively and qualitatively) from the types of contracts developers include. 
 \end{research-question}
-\begin{research-question}
-  Given a list of suggested invariants, how do developers choose which contracts to include?
-\end{research-question}
+
+This section consists of excerpts from an upcoming paper, describing the study investigating these questions, and other sections. The included content showcases the use of Celeriac in answering the research questions.
 
 \input{subject-programs}
+
+\label{sec:survey}
+\subsection{Included Code Contracts}
+We analyzed and categorized the contracts developers included in their sample programs, the results are in Table 2 below:
+
+\begin{center}{\small \input{cc-usage-table}}
+\captionof{table}{Code Contract usage for the subject programs. The number
+  listed next to the program name is the number of source code
+  lines in the program. The
+  columns REQ(uires), ENS(ures), and INV(ariants) correspond to
+  preconditions, postconditions, and object invariants,
+  respectively. A single contract can be counted in multiple
+  categories (rows).
+  %
+  The vast majority of preconditions written with Code Contracts
+  simply check the presence of information; the majority of
+  postconditions ensure that information is produced, or specify which
+  information is produced.}
+\end{center}
+\label{table:cc-usage}
+The vast majority of contracts developers include are nullness checks. These are typically not very interesting, as they don't well describe the program. Also, often if the nullness contracts were to fail the program would crash soon anyways, limiting the usefulness of performing runtime assertions. We believed programs contained much richer invariants that developers could include as contracts, and the next subsection describes the invariants inferred by Daikon.
+
 \input{paper-celeriac}
 
+\section{Related Work}
+
+\subsection{Other Daikon Front-Ends}
+
+Daikon front-ends exist
+for other programming languages including Java~\cite{ErnstPGMPTX2007},
+C/C++~\cite{Guo2006,Rudd2010}, and Eiffel~\cite{Polikarpova2009}. Both
+the Java and C/C++ front-end support a dynamic comparability analysis
+(as compared to the static analysis described in
+Section~\ref{sec:comparability}); the Eiffel front-end does not
+perform any comparability analyses.
+%
+Interestingly, the Eiffel front-end assumes that all nullary methods
+are pure and supports a black-list for impure methods.
+
+\subsection{Language-Specific Features and Daikon Enhancements}
+
+To support the .NET languages, we included features in Celeriac that
+aren't present in the other Daikon front-ends. Additionally, I
+introduced new metadata to Daikon to support the features.
+
+ \subsubsection{Properties}
+
+ A .NET property is a hybrid of a field and method. Each property has an
+ associated \verb|get| and \verb|set| method. These methods are
+ accessed without parenthesis, as if they were a field:
+
+ \begin{verbatim}
+     myObject.Property = ...
+     var x = myObject.Property
+ \end{verbatim}
+
+ In many cases, the property is backed by a private field. Since this
+ is a common case, the .NET languages provide auto-properties, which
+ automatically generate the backing field. Unlike fields however,
+ properties may throw exceptions, produce different values each time
+ they are called (e.g., \verb|Date.Now|), or even perform
+ side-effects.
+ %
+ To enable pretty printing and filtering of properties in Daikon, I
+ introduced a \verb|is_property| variable flag.
+
+\subsubsection{Readonly Variables}
+
+The .NET languages include a \verb|readonly| keyword that specifies
+that a variable must be assigned in the constructor, or given a
+constant value; the equivalent in Java is the \verb|final|
+keyword.
+%
+For readonly variables, Daikon produces redundant information for
+method exit points stating that the variable has not been modified
+(e.g., for a variable \verb|x|, \verb|x == orig(x)|).
+%
+We introduced an \verb|is_readonly| variable flag to Daikon to filter
+out these cases from the Daikon output.
+%
+In .NET, the \verb|==| operator performs a reference-equality
+comparison for expressions with reference-type, and a value-based
+comparison for expressions with value-types
+%
+\footnote{In C\#, the == and != operators can be
+  overloaded to perform a value equality check for a reference-type;
+  we do not consider this case.}.
+%
+Therefore, the semantics of the \verb|is_readonly| flag depends on the
+type of the expression.
+%
+The \verb|readonly| keyword is shallow. For reference types, the
+keyword prevents the reference from being reassigned, but does not
+prevent the object from being modified through the reference.
+%
+Therefore, when considering a composite expression (e.g.,
+\verb|this.foo.bar|), Celeriac cannot naively use the \verb|readonly|
+attribute of the last field.
+%
+To compute whether an expression should be flagged as
+\verb|is_readonly|, Celeriac starts at the root (e.g., \verb|this|in
+the the case of \verb|this.foo.bar|) of the composite expression and
+propagates reference immutability and value immutability
+information. Reference immutability is propagated via the
+\verb|readonly| fields (\verb|this| is reference-immutable). Value
+immutability is propagated / introduced for \verb|readonly| fields
+that have an immutable type. We define immutability conservatively ---
+an immutable type is one that is composed of \verb|readonly| fields
+with immutable types.
+
+% Celeriac uses a conservative immutability heuristic: reference types
+% that only consist of other immutable reference types or value types
+% are considered immutable.
+% %
+% Properties, however, complicate the matter since a one of a type's
+% properties may not be idempotent even if all of the fields are
+% readonly (i.e., the property can reference another non-immutable
+% object); Celeriac does not attempt to handle this case.
+
+% \paragraph{Enumerations}
+% \todo{Why is this interesting?}
+% %
+% Enumerations in .NET are backed by integers. In fact, uses of the
+% enumeration constants are replaced by integer constants in the IL (the
+% comparability analysis infers which integers are enumeration constants
+% based on co-occurence with a variable with an enumeration type).
+% %
+% To aid pretty-printing of contracts involving enumerations, we
+% introduced an \verb|is_enum| variable flag to Daikon.
+
+ \subsubsection{Exceptions}
+ Some specification languages such as JML allow developers to specify
+ exceptional postconditions --- postconditions that are true when a
+ given exception is thrown (note that this is may be different than the
+ conditions that cause the exception to be thrown).
+ %
+ To support reasoning about exceptional postconditions, Celeriac
+ produces a separate output program point for each exception type
+ thrown by a method. Currently, however, this information cannot be
+ fully integrated into Daikon.
+ %
+ Daikon has a fixed notion of the relationship between preconditions,
+ postconditions, and object invariants. Each return location of a
+ method has its own program point in Daikon. Invariants that appear at
+ every return location are aggregate into the set of postconditions for
+ the method. Additionally, preconditions and postconditions that appear
+ for every method are automatically lifted to an object invariant
+ program point.
+ %
+ To correctly support exceptions, an additional layer would need to be
+ introduced to separately aggregate the regular and exceptional return
+ locations of a method.
+%
+ For future work, we plan to use the information to detect cases in
+ which a method's exceptional postconditions are not consistent with
+ its normal postconditions --- e.g., the method does not clean up the
+ object's internal state before exiting with an exception.
+
+% \paragraph{F\# Lists}
+% \todo{How does we support F\# lists?}
+
 \section{Conclusion}
-This paper has presented Celeriac, a .NET front-end for Daikon.
+This paper has presented Celeriac, a .NET front-end for Daikon. The engineering contribution is Celeriac, the Daikon .NET front end. The conceptual contributions are design decisions when writing profiler tools, as described in the developer manual, and new Daikon invariant detection capabilities, such as conceptual post conditions. The research contribution is an analysis of which types of contracts developers choose to include in their code, how these differ from the inferred behavior or the program, and why.
 
 \newpage
 \bibliographystyle{plain}

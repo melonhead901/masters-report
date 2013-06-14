@@ -2,7 +2,7 @@
 \subsection{Observable Contracts}
 \label{sec:celeriac}
 
-This section reports on an analysis of the observable behaviors
+This subsection reports on an analysis of the observable behaviors
 of the subject programs.
 %
 In the absence of written documentation and contracts, developers
@@ -37,13 +37,7 @@ the program's behavior.
 %``Contract Abbreviator'' methods to make expressing common patterns
 %more concise; we wanted validate their impact on expressing common
 %program behaviors.
-
-\begin{research-question}
-  What are differences (qualitative and quantitative) between the Code
-  Contracts that are written in the subject program, and the observable
-  behavior of the program?
-\end{research-question}
-
+\  \\
 From the data in Section~\ref{sec:survey} (and our own experience), we
 hypothesized that developers disproportionately write generic, or
 simple, generic contracts. Additionally, Polikarpova et al. note that
@@ -57,11 +51,11 @@ using its integration test suite; Mishra Reader by using the
 application; and Labs by running the Labs for the Rxx
 project~\footnote{https://rxx.codeplex.com/}.
 \\ \\
-As a proxy for the behaviors that a developer could observe by calling
-an API, we used the Daikon invariant detector~\cite{daikon}
-to infer invariants. Daikon takes as input one or more execution
-traces, and reports data properties that were true over the observed
-executions.
+%As a proxy for the behaviors that a developer could observe by calling
+%an API, we used the Daikon invariant detector~\cite{daikon}
+%to infer invariants. Daikon takes as input one or more execution
+%traces, and reports data properties that were true over the observed
+%executions.
 \\ \\
 Daikon employs statistical methods (e.g., minimum support and
 confidence heursistics) to infer likely method preconditions, method
@@ -95,7 +89,7 @@ with the same abstract type.
 \\ \\
 Existing Daikon comparability analyses for Java and C/C++ programs are
 dynamic, recording variable interactions at runtime
-(e.g., DynComp~\todo{cite}). For Celeriac, we opted to implement a
+(e.g., DynComp\cite{Guo2006}). For Celeriac, we opted to implement a
 conservative static comparability analysis using the Common Compiler
 Infrastructure: Code Model and AST
 API\footnote{https://cciast.codeplex.com/}. The analysis works in
@@ -119,130 +113,8 @@ with compatible types are in the same comparability set.
 Two types are considered to be compatible if either either type is
 assignable to the other.
 
-\subsubsection{Language-Specific Features and Daikon Enhancements}
-
-To support the .NET languages, I included features in Celeriac that
-aren't present in the other Daikon front-ends. Additionally, I
-introduced new metadata to Daikon to support the features.
-
- \paragraph{Properties}
-
- A .NET property is a hybrid of a field and method. Each property has an
- associated \verb|get| and \verb|set| method. These methods are
- accessed without parenthesis, as if they were a field:
-
- \begin{verbatim}
-     myObject.Property = ...
-     var x = myObject.Property
- \end{verbatim}
-
- In many cases, the property is backed by a private field. Since this
- is a common case, the .NET languages provide auto-properties, which
- automatically generate the backing field. Unlike fields however,
- properties may throw exceptions, produce different values each time
- they are called (e.g., \verb|Date.Now|), or even perform
- side-effects.
- %
- To enable pretty printing and filtering of properties in Daikon, I
- introduced a \verb|is_property| variable flag.
-
-\paragraph{Readonly Variables}
-
-The .NET languages include a \verb|readonly| keyword that specifies
-that a variable must be assigned in the constructor, or given a
-constant value; the equivalent in Java is the \verb|final|
-keyword.
-%
-For readonly variables, Daikon produces redundant information for
-method exit points stating that the variable has not been modified
-(e.g., for a variable \verb|x|, \verb|x == orig(x)|).
-%
-We introduced an \verb|is_readonly| variable flag to Daikon to filter
-out these cases from the Daikon output.
-%
-In .NET, the \verb|==| operator performs a reference-equality
-comparison for expressions with reference-type, and a value-based
-comparison for expressions with value-types
-%
-\footnote{In C\#, the == and != operators can be
-  overloaded to perform a value equality check for a reference-type;
-  we do not consider this case.}.
-%
-Therefore, the semantics of the \verb|is_readonly| flag depends on the
-type of the expression.
-%
-The \verb|readonly| keyword is shallow. For reference types, the
-keyword prevents the reference from being reassigned, but does not
-prevent the object from being modified through the reference.
-%
-Therefore, when considering a composite expression (e.g.,
-\verb|this.foo.bar|), Celeriac cannot naively use the \verb|readonly|
-attribute of the last field.
-%
-To compute whether an expression should be flagged as
-\verb|is_readonly|, Celeriac starts at the root (e.g., \verb|this|in
-the the case of \verb|this.foo.bar|) of the composite expression and
-propagates reference immutability and value immutability
-information. Reference immutability is propagated via the
-\verb|readonly| fields (\verb|this| is reference-immutable). Value
-immutability is propagated / introduced for \verb|readonly| fields
-that have an immutable type. We define immutability conservatively ---
-an immutable type is one that is composed of \verb|readonly| fields
-with immutable types.
-
-% Celeriac uses a conservative immutability heuristic: reference types
-% that only consist of other immutable reference types or value types
-% are considered immutable.
-% %
-% Properties, however, complicate the matter since a one of a type's
-% properties may not be idempotent even if all of the fields are
-% readonly (i.e., the property can reference another non-immutable
-% object); Celeriac does not attempt to handle this case.
-
-% \paragraph{Enumerations}
-% \todo{Why is this interesting?}
-% %
-% Enumerations in .NET are backed by integers. In fact, uses of the
-% enumeration constants are replaced by integer constants in the IL (the
-% comparability analysis infers which integers are enumeration constants
-% based on co-occurence with a variable with an enumeration type).
-% %
-% To aid pretty-printing of contracts involving enumerations, we
-% introduced an \verb|is_enum| variable flag to Daikon.
-
- \paragraph{Exceptions}
- Some specification languages such as JML allow developers to specify
- exceptional postconditions --- postconditions that are true when a
- given exception is thrown (note that this is may be different than the
- conditions that cause the exception to be thrown).
- %
- To support reasoning about exceptional postconditions, Celeriac
- produces a separate output program point for each exception type
- thrown by a method. Currently, however, this information cannot be
- fully integrated into Daikon.
- %
- Daikon has a fixed notion of the relationship between preconditions,
- postconditions, and object invariants. Each return location of a
- method has its own program point in Daikon. Invariants that appear at
- every return location are aggregate into the set of postconditions for
- the method. Additionally, preconditions and postconditions that appear
- for every method are automatically lifted to an object invariant
- program point.
- %
- To correctly support exceptions, an additional layer would need to be
- introduced to separately aggregate the regular and exceptional return
- locations of a method.
-%
- For future work, we plan to use the information to detect cases in
- which a method's exceptional postconditions are not consistent with
- its normal postconditions --- e.g., the method does not clean up the
- object's internal state before exiting with an exception.
-
-% \paragraph{F\# Lists}
-% \todo{How does we support F\# lists?}
-
-\subsection{Results}
-
+\subsubsection{Results}
+Results from the analysis are presented in Table 3 below, using the same programs described in Section \ref{sec:survey}.
 %\subsubsection{Domain-Independence}
 %
 %Table~\ref{table:celeriac} shows the inferred behavioral properties
@@ -258,19 +130,18 @@ with immutable types.
 %are a large number of equalities that a develop could potentially
 %specify as a postcondition for a method.
 
-\begin{table*}
-\begin{center}{\small \input{celeriac-table}}
+\begin{center}\begin{table}{\small \input{celeriac-table}}
   \caption{Behavioral properties dynamically inferred by Daikon; the
     contents of each category are mutually exclusive.  The Mishra
-    Reader View Models component and Sando Indexer component are the subjects of the developer case study in
- %   Section~\ref{sec:observe}.
+    Reader View Models component and Sando Indexer component are the subjects of the developer case study.     
+ %  in Section~\ref{sec:observe}.
 %    %
 %    \todo{The NullOrBlank, Non-Empty, Bounds Check, and Indicator
 %      categories need to be fixed.}
     }
+\end{table}
 \end{center}
 \label{table:celeriac}
-\end{table*}
 
 %\subsubsection{Expressivity}
 %To get an intuition for how often different methods exhibit the same
@@ -315,7 +186,9 @@ with immutable types.
 %\end{figure}
 
 \subsubsection{Difference Between Contracts and Observed Behavior}
-
+Comparing Tables 2 and 3 shows some stark differences between the types of contracts developers included and the types of contracts they could include based on the observed behavior. There are almost no implication contracts included in the subject programs, but there are many possible for each type as possible conditions for each program. These post-conditions implications are useful because they can describe precisely the function of the method. \texttt{return > -1 => x is in this.elements[]} is an example of such a post-condition that describes the return condition of the binary search method. As well, there ForAll invariants were detected for all programs, especially MishraReader and SandoIndexer, but weren't included frequently (or at all for the two previous mentioned projects). These present another opportunity for developers to add contracts. From our contact with the MishraReader developer, he did not even know that such contracts were possible.
+\\ \\
+We believe there is a significant opportunity for developers to improve their use of Code Contracts, and the programs overall, by utilizing the Celeriac tool to help identify contracts they didn't realize themselves.
 %\subsubsection{Threats to Validity}
 %\label{sec:celeriac-threats}
 %
@@ -337,15 +210,15 @@ with immutable types.
 %Csallner and Smaragdakis point out inheritance can cause Daikon to
 %output internally inconsistent contracts~\cite{Csallner06}.
 
-\paragraph{Contract Recall}
+%\paragraph{Contract Recall}
 
-Since Daikon works by instantiating contract templates and
-invalidating the templates against the trace, it's output is directly
-tied to the ``grammar'' of contracts provided.
+%Since Daikon works by instantiating contract templates and
+%invalidating the templates against the trace, it's output is directly
+%tied to the ``grammar'' of contracts provided.
 
-Additionally, since Daikon only calls methods that are known to be
-pure, missing pure methods would result in contracts involving those
-methods being missed. Celeriac's purity assumptions are conservative,
-only including auto-generated property getters and methods annotated
-with the \verb|Pure| annotation (only libraries annotated with Code
-Contracts include the \verb|Pure| annotation.
+%Additionally, since Daikon only calls methods that are known to be
+%pure, missing pure methods would result in contracts involving those
+%methods being missed. Celeriac's purity assumptions are conservative,
+%only including auto-generated property getters and methods annotated
+%with the \verb|Pure| annotation (only libraries annotated with Code
+%Contracts include the \verb|Pure| annotation.
